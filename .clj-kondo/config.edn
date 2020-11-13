@@ -1,0 +1,6 @@
+{:hooks
+ {:analyze-call
+  {madstap.integrant.tools.alpha/with-system hooks.with-system/with-system}}
+
+ :linters
+ {:not-empty? {:level :off}}}
