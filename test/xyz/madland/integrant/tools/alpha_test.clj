@@ -1,5 +1,5 @@
-(ns madstap.integrant.tools.alpha-test
-  (:require [madstap.integrant.tools.alpha :as ig.tools :refer [with-system]]
+(ns xyz.madland.integrant.tools.alpha-test
+  (:require [xyz.madland.integrant.tools.alpha :as ig.tools :refer [with-system]]
             [integrant.core :as ig]
             [clojure.test :refer [deftest is]]))
 

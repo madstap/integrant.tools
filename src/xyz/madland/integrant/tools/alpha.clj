@@ -1,4 +1,4 @@
-(ns madstap.integrant.tools.alpha
+(ns xyz.madland.integrant.tools.alpha
   (:refer-clojure :exclude [assoc assoc-in get get-in update update-in contains?])
   (:require [clojure.core :as core]
             [integrant.core :as ig]))
@@ -16,7 +16,7 @@
   (core/assoc system (or (find-k system k) k) v))
 
 (defn update [system k f & args]
-  (assoc system (or (find-k system k) k) (apply f (get system k) args)))
+  (assoc system k (apply f (get system k) args)))
 
 (defn update-in [system ks f & args]
   (let [[k & more-ks] ks]
