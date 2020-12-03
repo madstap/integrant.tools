@@ -14,46 +14,37 @@
 (def dconn
   {:uri "unix:///var/run/docker.sock"})
 
-(defn clean! []
-  (sh/sh "rm" "-r" "classes" "target" "foo.txt"))
+(defn clean! [id]
+  (println "Cleaning")
+  (time (sh/sh "rm" "-r" "classes" "target" (str id ".txt"))))
 
 (def core-ns
   'xyz.madland.integrant.tools.exec-daemons-core)
 
-;;
-
-(defn make-jar! []
-  (clean!)
+(defn make-jar! [id]
   (sh/sh "mkdir" "classes")
   (compile core-ns)
   (uberdeps/package (edn/read-string (slurp "deps.edn"))
-                    "target/foo.jar"
+                    (str "target/" id ".jar")
                     {:aliases [:test]
                      :main-class (munge core-ns)}))
 
+(defn run-jar! [id]
+  (sh/sh "bin/jar-test" id))
+
+(deftest clean-shutdown-test
+  (let [id (str (java.util.UUID/randomUUID))]
+    (clean! id)
+    (println "Making jar")
+    (time (make-jar! id))
+    (println "Running jar")
+    (time (run-jar! id))
+    (let [output (str/split-lines (slurp (str id ".txt")))]
+      (run! println output)
+      (is (= ["Start" "Hello, world!" "Stop"] (->> output (dedupe)))))
+    (clean! id)))
 
 (comment
-
-  (clean!)
-
-  (make-jar!)
-
-  ;; $ java -jar target/foo.jar >> foo.txt
-  ;; $ kill $(ps -ef | grep foo.jar | grep -iv grep | awk '{print $2}')
-
-  ;; java -jar target/foo.jar >> foo.txt & sleep 3 && kill $(ps -ef | grep foo.jar | grep -iv grep | awk '{print $2}')
-
-  (sh/sh "bash" "java -jar target/foo.jar >> foo.txt & sleep 3 && kill $(ps -ef | grep foo.jar | grep -iv grep | awk '{print $2}')")
-
-  (= ["Start" "Hello, world!" "Stop"]
-     (->> (str/split-lines (slurp "foo.txt")) (distinct)))
-
-
-
-
-  ;; repl
-
-  (java "-jar" "target/foo.jar" {:out (java.io.File. "foo.txt")})
 
   (require '[madstap.comfy :refer [defs]])
 
