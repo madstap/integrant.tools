@@ -3,3 +3,6 @@ deploy_token
 .cpcache/
 .clj-kondo/.cache/
 .nrepl-port
+target/
+classes/
+foo.txt

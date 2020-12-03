@@ -2,12 +2,16 @@
  :deps {org.clojure/clojure {:mvn/version "1.10.1"}
         integrant/integrant {:mvn/version "0.8.0"}}
  :aliases {:test
-           {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-529"}}}
+           {:extra-paths ["test" "target" "classes"]
+            :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-529"}
+                         lispyclouds/clj-docker-client {:mvn/version "1.0.1"}
+                         org.clojure/tools.deps.alpha {:mvn/version "0.9.847"}
+                         uberdeps/uberdeps {:mvn/version "1.0.3"}
+                         me.raynes/conch {:mvn/version "0.8.0"}}}
 
            :jar
            {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
-                                          :sha     "2769a6224bfb938e777906ea311b3daf7d2220f5"}}
+                                          :sha     "e518d9b2b70f4292c9988d2792b8667d88a6f4df"}}
             :main-opts  ["-m" "mach.pack.alpha.skinny" "--no-libs" "--project-path" "integrant.tools.jar"]}
 
            :deploy

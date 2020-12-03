@@ -1,6 +1,7 @@
 (ns xyz.madland.integrant.tools.alpha
   (:refer-clojure :exclude [assoc assoc-in get get-in update update-in contains?])
   (:require [clojure.core :as core]
+            [xyz.madland.integrant.tools.state.alpha :as ig.tools.state]
             [integrant.core :as ig]))
 
 (defn get [system k]
@@ -38,6 +39,26 @@
       (assoc system k v)
       (update system k core/assoc-in more-ks v))))
 
+(defn init* [system ks]
+  (if (some? ks) (ig/init system ks) (ig/init system)))
+
+(defn exec [config ks]
+  (-> config ig/prep (init* ks)))
+
+(defn await-shutdown! [system]
+  (.addShutdownHook (Runtime/getRuntime)
+                    (Thread. #(ig/halt! (cond-> system (var? system) deref))))
+  (.. Thread currentThread join))
+
+(defn exec-daemon!
+  ([config]
+   (exec-daemon! config nil))
+  ([config ks]
+   (alter-var-root #'ig.tools.state/config (constantly config))
+   (let [system (exec config ks)]
+     (alter-var-root #'ig.tools.state/system (constantly system))
+     (await-shutdown! #'ig.tools.state/system))))
+
 (defn destructure-derived [bindings]
   (let [[map-sym :as destructured] (destructure bindings)]
     (mapv #(cond-> %
@@ -45,14 +66,11 @@
              (-> next (conj `get)))
           destructured)))
 
-(defn init* [system ks]
-  (if (some? ks) (ig/init system ks) (ig/init system)))
-
 (defmacro with-system
   {:style/indent 1}
   [[binding config ks] & body]
   (let [sys (gensym "system")]
-    `(let [~sys (init* (ig/prep ~config) ~ks)]
+    `(let [~sys (exec ~config ~ks)]
        (try (let ~(destructure-derived [binding sys])
               ~@body)
             (finally (ig/halt! ~sys))))))
