@@ -22,14 +22,19 @@
                             [::foo ::bar]
                             true))))
 
+(def sys-example
+  {[::foo ::a] 1
+   [::bar ::a] 1
+   [::baz ::b] 2
+   [::quux ::c] 2})
+
 (deftest select-keys-test
-  (let [sys {[::foo ::a] 1
-             [::bar ::a] 1
-             [::baz ::b] 2
-             [::quux ::c] 2}]
-    (is (= {[::foo ::a] 1
-            [::bar ::a] 1}
-           (ig.tools/select-keys sys [::a])))))
+  (is (= {[::foo ::a] 1
+          [::bar ::a] 1}
+         (ig.tools/select-keys sys-example [::a]))))
+
+(deftest get-all-test
+  (is (= [1 1] (ig.tools/get-all sys-example [::a]))))
 
 (defmethod ig/init-key ::foo [_ x] x)
 (defmethod ig/init-key ::bar [_ x] x)

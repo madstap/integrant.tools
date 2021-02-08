@@ -23,6 +23,9 @@
 (defn select-keys [system ks]
   (core/select-keys system (mapcat #(find-ks system %) ks)))
 
+(defn get-all [system k]
+  (map second (ig/find-derived system k)))
+
 (defn assoc [system k v]
   (core/assoc system (or (find-k system k) k) v))
 
