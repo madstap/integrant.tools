@@ -1,5 +1,9 @@
 (ns xyz.madland.integrant.tools.alpha
-  (:refer-clojure :exclude [assoc assoc-in get get-in update update-in contains?])
+  (:refer-clojure :exclude [assoc, assoc-in
+                            get, get-in
+                            update, update-in
+                            contains?
+                            select-keys])
   (:require [clojure.core :as core]
             [xyz.madland.integrant.tools.state.alpha :as ig.tools.state]
             [integrant.core :as ig]))
@@ -12,6 +16,12 @@
 
 (defn find-k [system k]
   (first (ig/find-derived-1 system k)))
+
+(defn find-ks [system k]
+  (map first (ig/find-derived system k)))
+
+(defn select-keys [system ks]
+  (core/select-keys system (mapcat #(find-ks system %) ks)))
 
 (defn assoc [system k v]
   (core/assoc system (or (find-k system k) k) v))

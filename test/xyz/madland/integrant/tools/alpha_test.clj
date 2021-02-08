@@ -22,6 +22,15 @@
                             [::foo ::bar]
                             true))))
 
+(deftest select-keys-test
+  (let [sys {[::foo ::a] 1
+             [::bar ::a] 1
+             [::baz ::b] 2
+             [::quux ::c] 2}]
+    (is (= {[::foo ::a] 1
+            [::bar ::a] 1}
+           (ig.tools/select-keys sys [::a])))))
+
 (defmethod ig/init-key ::foo [_ x] x)
 (defmethod ig/init-key ::bar [_ x] x)
 (defmethod ig/init-key ::x [_ x] x)
