@@ -16,7 +16,7 @@
 
 (defn clean! [id]
   (println "Cleaning")
-  (time (sh/sh "rm" "-r" "classes" "target" (str id ".txt"))))
+  (time (sh/sh "rm" "-rf" "classes" "target" (str id ".txt"))))
 
 (def core-ns
   'xyz.madland.integrant.tools.exec-daemons-core)

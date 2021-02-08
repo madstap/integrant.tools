@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 java -jar target/$1.jar >> $1.txt & \
-sleep 3 && \
+sleep 6 && \
 kill $(ps -ef \
        | grep $1.jar \
        | grep -iv grep \
