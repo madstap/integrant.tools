@@ -36,6 +36,40 @@
 (deftest get-all-test
   (is (= [1 1] (ig.tools/get-all sys-example [::a]))))
 
+(deftest assoc-all-test
+  (is (= {[::foo ::a] :x
+          [::bar ::a] :x
+          [::baz ::b] 2
+          [::quux ::c] 2}
+         (ig.tools/assoc-all sys-example ::a :x))))
+
+(deftest update-all-test
+  (is (= {[::foo ::a] -10
+          [::bar ::a] -10
+          [::baz ::b] 2
+          [::quux ::c] 2}
+         (ig.tools/update-all sys-example ::a - 11))))
+
+(def nested-example
+  {[::foo ::a] {:foo 1}
+   [::bar ::a] {:foo 1}
+   [::baz ::b] 2
+   [::quux ::c] 2})
+
+(deftest assoc-all-test
+  (is (= {[::foo ::a] {:foo :x}
+          [::bar ::a] {:foo :x}
+          [::baz ::b] 2
+          [::quux ::c] 2}
+         (ig.tools/assoc-in-all nested-example [::a :foo] :x))))
+
+(deftest update-all-test
+  (is (= {[::foo ::a] {:foo -10}
+          [::bar ::a] {:foo -10}
+          [::baz ::b] 2
+          [::quux ::c] 2}
+         (ig.tools/update-in-all nested-example [::a :foo] - 11))))
+
 (defmethod ig/init-key ::foo [_ x] x)
 (defmethod ig/init-key ::bar [_ x] x)
 (defmethod ig/init-key ::x [_ x] x)

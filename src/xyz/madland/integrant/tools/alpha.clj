@@ -26,6 +26,24 @@
 (defn get-all [system k]
   (map second (ig/find-derived system k)))
 
+(defn assoc-all [system k v]
+  (reduce #(core/assoc %1 %2 v) system (find-ks system k)))
+
+(defn update-all [system k f & args]
+  (reduce #(apply core/update %1 %2 f args) system (find-ks system k)))
+
+(defn assoc-in-all [system ks v]
+  (let [[k & more-ks] ks]
+    (reduce #(core/assoc-in %1 (cons %2 more-ks) v)
+            system
+            (find-ks system k))))
+
+(defn update-in-all [system ks f & args]
+  (let [[k & more-ks] ks]
+    (reduce #(apply core/update-in %1 (cons %2 more-ks) f args)
+            system
+            (find-ks system k))))
+
 (defn assoc [system k v]
   (core/assoc system (or (find-k system k) k) v))
 
