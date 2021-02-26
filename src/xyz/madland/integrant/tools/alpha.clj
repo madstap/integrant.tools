@@ -6,7 +6,8 @@
                             select-keys])
   (:require [clojure.core :as core]
             [xyz.madland.integrant.tools.state.alpha :as ig.tools.state]
-            [integrant.core :as ig]))
+            [integrant.core :as ig])
+  (:import (java.util Date)))
 
 (defn get [system k]
   (second (ig/find-derived-1 system k)))
@@ -105,3 +106,24 @@
        (try (let ~(destructure-derived [binding sys])
               ~@body)
             (finally (ig/halt! ~sys))))))
+
+(defn now-ms []
+  (.getTime (Date.)))
+
+(defn wrap-init-times [init-key log]
+  (fn [k config]
+    (let [start (now-ms)
+          ret (init-key k config)
+          end (now-ms)]
+      (log k (- end start))
+      ret)))
+
+(defmacro with-init-times
+  "Takes a function log of the arity [k init-ms] and times invocations of
+  integrant/init-key inside body. Useful for logging the startup time
+  of components in a system."
+  {:style/indent 1}
+  [log & body]
+  `(let [init-key# ig/init-key]
+     (with-redefs [ig/init-key (wrap-init-times init-key# ~log)]
+       ~@body)))

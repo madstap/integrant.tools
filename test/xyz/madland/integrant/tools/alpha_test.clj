@@ -1,5 +1,6 @@
 (ns xyz.madland.integrant.tools.alpha-test
-  (:require [xyz.madland.integrant.tools.alpha :as ig.tools :refer [with-system]]
+  (:require [xyz.madland.integrant.tools.alpha :as ig.tools
+             :refer [with-system with-init-times]]
             [integrant.core :as ig]
             [clojure.test :refer [deftest is]]))
 
@@ -86,3 +87,17 @@
     (is (= 2 bar))
     (is (= 3 x))
     (is (nil? not-found))))
+
+(defmethod ig/init-key ::sleepy [_ {:keys [ms]}]
+  (Thread/sleep ms))
+
+(deftest with-init-times-test
+  (let [logs (atom [])]
+    (with-init-times #(swap! logs conj [%1 %2])
+      (with-system [_ {[:init/foo ::sleepy] {:ms 50}
+                       [:init/bar ::sleepy] {:ms 100 :foo (ig/ref :init/foo)}}]
+        (let [[[foo-k foo-ms] [bar-k bar-ms]] @logs]
+          (is (= [:init/foo ::sleepy] foo-k))
+          (is (= [:init/bar ::sleepy] bar-k))
+          (is (<= 50 foo-ms))
+          (is (<= 100 bar-ms)))))))
