@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-clojure -Srepro -M:test -m kaocha.runner "$@"
