@@ -23,7 +23,9 @@
             (zip/root-string))]
     (spit "deps.edn" new-deps-edn)))
 
-(defn commit-and-push [version]
+(defn commit-tag-and-push [version]
   (tasks/shell "git add .")
   (tasks/shell (str "git commit -m  'Release version "  version "'"))
-  (tasks/shell "git push"))
+  (tasks/shell (str "git tag v" version))
+  (tasks/shell "git push")
+  (tasks/shell "git push --tags"))

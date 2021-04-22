@@ -36,4 +36,4 @@ Takes one argument which is the new version.
                   (clojure {:extra-env deploy-env} "-X:deploy")
 
                   (println "Committing and pushing changes")
-                  (deploy/commit-and-push version))}}}
+                  (deploy/commit-tag-and-push version))}}}
