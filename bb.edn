@@ -1,4 +1,5 @@
-{:tasks
+{:paths ["tasks"]
+ :tasks
  {test (apply clojure "-Srepro -M:test -m kaocha.runner" *command-line-args*)
 
   clean (shell "rm -f integrant.tools.jar")
@@ -6,31 +7,17 @@
   build (clojure "-X:jar")
 
   deploy {:depends [clean]
-          :requires ([rewrite-clj.zip :as zip]
-                     [clojure.string :as str]
-                     [babashka.process :as proc])
+          :requires ([deploy])
           :task (let [version (first *command-line-args*)
-                      new-deps-edn (-> (zip/of-string (slurp "deps.edn"))
-                                       (zip/get :aliases)
-                                       (zip/get :jar)
-                                       (zip/get :exec-args)
-                                       (zip/assoc :version version)
-                                       (zip/root-string))
-                      deploy-token (slurp "deploy_token")
-                      clean-workdir? (-> (proc/sh ["git" "status" "--porcelain"])
-                                         :out
-                                         str/blank?)
-                      on-main? (-> (proc/sh ["git" "branch" "--show-current"])
-                                   :out
-                                   (str/trim)
-                                   (= "main"))]
+                      deploy-token (slurp "deploy_token")]
                   (assert version "Need to specify a version")
-                  (assert on-main? "Need to be on main")
-                  (assert clean-workdir?
+                  (assert (deploy/on-main?) "Need to be on main")
+                  (assert (deploy/clean-workdir?)
                           "Need to have a clean working directory to deploy.")
 
                   (shell "bb test --no-watch")
-                  (spit "deps.edn" new-deps-edn)
+
+                  (deploy/update-version version)
 
                   (println "Building jar")
                   (shell "bb build")
