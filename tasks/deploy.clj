@@ -3,7 +3,8 @@
   (:require
    [rewrite-clj.zip :as zip]
    [clojure.string :as str]
-   [babashka.process :as proc]))
+   [babashka.process :as proc]
+   [babashka.tasks :as tasks]))
 
 (defn on-main? []
   (-> (proc/sh ["git" "branch" "--show-current"]) :out str/trim (= "main")))
@@ -21,3 +22,8 @@
             (zip-assoc-in [:aliases :jar :exec-args :version] version)
             (zip/root-string))]
     (spit "deps.edn" new-deps-edn)))
+
+(defn commit-and-push [version]
+  (tasks/shell "git add .")
+  (tasks/shell (str "git commit -m  'Release version "  version "'"))
+  (tasks/shell "git push"))

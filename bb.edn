@@ -1,33 +1,39 @@
 {:paths ["tasks"]
  :tasks
- {test (apply clojure "-Srepro -M:test -m kaocha.runner" *command-line-args*)
+ {test {:doc "Run the tests, passes command line args to kaocha.runner"
+        :task (apply clojure "-Srepro -M:test -m kaocha.runner" *command-line-args*)}
 
   clean (shell "rm -f integrant.tools.jar")
 
-  build (clojure "-X:jar")
+  build {:depends [clean]
+         :doc "Build jar"
+         :task (clojure "-X:jar")}
 
-  deploy {:depends [clean]
-          :requires ([deploy])
+  deploy {:requires ([deploy])
+          :doc
+          "
+Runs the tests, updates version, builds jar, deploys to clojars
+then commits and pushes the version change.
+
+Takes one argument which is the new version.
+"
           :task (let [version (first *command-line-args*)
-                      deploy-token (slurp "deploy_token")]
+                      deploy-token (slurp "deploy_token")
+                      deploy-env {"CLOJARS_USERNAME" "madstap"
+                                  "CLOJARS_PASSWORD" deploy-token}]
                   (assert version "Need to specify a version")
                   (assert (deploy/on-main?) "Need to be on main")
                   (assert (deploy/clean-workdir?)
                           "Need to have a clean working directory to deploy.")
 
                   (shell "bb test --no-watch")
-
                   (deploy/update-version version)
 
                   (println "Building jar")
                   (shell "bb build")
 
                   (println "Deploying to clojars")
-                  (shell {:extra-env {"CLOJARS_USERNAME" "madstap"
-                                      "CLOJARS_PASSWORD" deploy-token}}
-                         "clojure -X:deploy")
+                  (clojure {:extra-env deploy-env} "-X:deploy")
 
                   (println "Committing and pushing changes")
-                  (shell "git add .")
-                  (shell (str "git commit -m " "'Release version " version "'"))
-                  (shell "git push"))}}}
+                  (deploy/commit-and-push version))}}}
