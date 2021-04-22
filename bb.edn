@@ -20,8 +20,9 @@
                       clean-workdir? (-> (proc/sh ["git" "status" "--porcelain"])
                                          :out
                                          str/blank?)
-                      on-main? (-> (proc/sh ["git" "branch" "--current-branch"])
+                      on-main? (-> (proc/sh ["git" "branch" "--show-current"])
                                    :out
+                                   (str/trim)
                                    (= "main"))]
                   (assert version "Need to specify a version")
                   (assert on-main? "Need to be on main")
