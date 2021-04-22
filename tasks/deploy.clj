@@ -6,21 +6,18 @@
    [babashka.process :as proc]))
 
 (defn on-main? []
-  (-> (proc/sh ["git" "branch" "--show-current"])
-      :out
-      (str/trim)
-      (= "main")))
+  (-> (proc/sh ["git" "branch" "--show-current"]) :out str/trim (= "main")))
 
 (defn clean-workdir? []
-  (-> (proc/sh ["git" "status" "--porcelain"])
-      :out
-      str/blank?))
+  (-> (proc/sh ["git" "status" "--porcelain"]) :out str/blank?))
+
+(defn zip-assoc-in [zloc ks v]
+  (-> (reduce zip/get zloc (butlast ks))
+      (zip/assoc (last ks) v)))
 
 (defn update-version [version]
-  (let [new-deps-edn (-> (zip/of-string (slurp "deps.edn"))
-                         (zip/get :aliases)
-                         (zip/get :jar)
-                         (zip/get :exec-args)
-                         (zip/assoc :version version)
-                         (zip/root-string))]
+  (let [new-deps-edn
+        (-> (zip/of-string (slurp "deps.edn"))
+            (zip-assoc-in [:aliases :jar :exec-args :version] version)
+            (zip/root-string))]
     (spit "deps.edn" new-deps-edn)))
