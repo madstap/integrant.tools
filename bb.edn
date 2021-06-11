@@ -1,4 +1,5 @@
 {:paths ["tasks"]
+ :deps {clj-kondo/clj-kondo {:mvn/version "2021.04.23"}}
  :tasks
  {test {:doc "Run the tests, passes command line args to kaocha.runner"
         :task (apply clojure "-Srepro -M:test -m kaocha.runner" *command-line-args*)}
@@ -10,6 +11,7 @@
          :task (clojure "-X:jar")}
 
   deploy {:requires ([deploy])
+          :depends [test build]
           :doc
           "
 Runs the tests, updates version, builds jar, deploys to clojars
@@ -17,23 +19,6 @@ then commits and pushes the version change.
 
 Takes one argument which is the new version.
 "
-          :task (let [version (first *command-line-args*)
-                      deploy-token (slurp "deploy_token")
-                      deploy-env {"CLOJARS_USERNAME" "madstap"
-                                  "CLOJARS_PASSWORD" deploy-token}]
-                  (assert version "Need to specify a version")
-                  (assert (deploy/on-main?) "Need to be on main")
-                  (assert (deploy/clean-workdir?)
-                          "Need to have a clean working directory to deploy.")
-
-                  (shell "bb test --no-watch")
-                  (deploy/update-version version)
-
-                  (println "Building jar")
-                  (shell "bb build")
-
-                  (println "Deploying to clojars")
-                  (clojure {:extra-env deploy-env} "-X:deploy")
-
-                  (println "Committing and pushing changes")
-                  (deploy/commit-tag-and-push version))}}}
+          :task (deploy/deploy :deploy-args "-X:deploy"
+                               :token (slurp "deploy_token")
+                               :version (first *command-line-args*))}}}

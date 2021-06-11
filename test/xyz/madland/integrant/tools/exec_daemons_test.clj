@@ -1,15 +1,11 @@
 (ns xyz.madland.integrant.tools.exec-daemons-test
   (:require [clojure.test :refer [deftest is]]
             [clojure.java.shell :as sh]
-            [clojure.java.io :as io]
             [clj-docker-client.core :as docker]
-            [uberdeps.uberjar :as uberjar]
             [uberdeps.api :as uberdeps]
             [xyz.madland.integrant.tools.exec-daemons-core]
             [clojure.string :as str]
-            [clojure.edn :as edn]
-            [clojure.spec.alpha :as s]
-            [me.raynes.conch :as conch]))
+            [clojure.edn :as edn]))
 
 (def dconn
   {:uri "unix:///var/run/docker.sock"})

@@ -6,8 +6,7 @@
                             select-keys])
   (:require [clojure.core :as core]
             [xyz.madland.integrant.tools.state.alpha :as ig.tools.state]
-            [integrant.core :as ig])
-  (:import (java.util Date)))
+            [integrant.core :as ig]))
 
 (defn get [system k]
   (second (ig/find-derived-1 system k)))
@@ -77,6 +76,16 @@
 (defn exec [config ks]
   (-> config ig/prep (init* ks)))
 
+(defn exec!
+  ([config]
+   (exec! config nil))
+  ([config ks]
+   (let [prepped (ig/prep config)]
+     (alter-var-root #'ig.tools.state/config (constantly prepped))
+     (let [system (init* prepped ks)]
+       (alter-var-root #'ig.tools.state/system (constantly system))
+       system))))
+
 (defn await-shutdown! [system]
   (.addShutdownHook (Runtime/getRuntime)
                     (Thread. #(ig/halt! (cond-> system (var? system) deref))))
@@ -86,10 +95,8 @@
   ([config]
    (exec-daemon! config nil))
   ([config ks]
-   (alter-var-root #'ig.tools.state/config (constantly config))
-   (let [system (exec config ks)]
-     (alter-var-root #'ig.tools.state/system (constantly system))
-     (await-shutdown! #'ig.tools.state/system))))
+   (exec! config ks)
+   (await-shutdown! #'ig.tools.state/system)))
 
 (defn destructure-derived [bindings]
   (let [[map-sym :as destructured] (destructure bindings)]
@@ -98,17 +105,24 @@
              (-> next (conj `get)))
           destructured)))
 
+(defmacro let-derived
+  {:style/indent 1}
+  [[binding system & bindings] & body]
+  `(let [~@(destructure-derived [binding system])
+         ~@bindings]
+     ~@body))
+
 (defmacro with-system
   {:style/indent 1}
   [[binding config ks] & body]
   (let [sys (gensym "system")]
     `(let [~sys (exec ~config ~ks)]
-       (try (let ~(destructure-derived [binding sys])
+       (try (let-derived ~[binding sys]
               ~@body)
             (finally (ig/halt! ~sys))))))
 
 (defn now-ms []
-  (.getTime (Date.)))
+  (System/currentTimeMillis))
 
 (defn wrap-init-times [init-key log]
   (fn [k config]
@@ -127,3 +141,44 @@
   `(let [init-key# ig/init-key]
      (with-redefs [ig/init-key (wrap-init-times init-key# ~log)]
        ~@body)))
+
+(defn syms-in-binding
+  "Returns the symbols (and keywords that act as symbols) in a binding form."
+  [binding]
+  (letfn [(simple-symbol [sym]
+            (with-meta (symbol (name sym)) (merge (meta binding) (meta sym))))]
+    (reduce
+     (fn [syms x]
+       (cond-> syms
+         (and (symbol? x) (not= '& x))
+         (conj (simple-symbol x))
+
+         ;; Special-case: Keywords act like symbols in {:keys [:foo :bar/baz]}
+         (and (map-entry? x) (= :keys (first x)))
+         (into (comp (filter keyword?)
+                     (map simple-symbol)) (second x))))
+     []
+     (tree-seq coll? seq binding))))
+
+(defmacro defs
+  {:style/indent 1}
+  [binding system]
+  `(let-derived [~binding ~system]
+     ~(vec (for [sym (syms-in-binding binding)]
+             `(def ~sym ~sym)))))
+
+(comment
+
+
+  (defs {::keys [bar]} {[::foo ::bar] 123})
+
+  (defs {::keys [foo]} {[::foo ::bar] 123
+                        [::foo ::baz] 321})
+
+  (def foos (get-all {[::foo ::bar] 123
+                      [::foo ::baz] 321} ::foo))
+
+  (let-derived [{::keys [foo bar]} {[::foo ::bar] 123}]
+    foo)
+
+  )

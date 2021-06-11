@@ -29,3 +29,19 @@
   (tasks/shell (str "git tag v" version))
   (tasks/shell "git push")
   (tasks/shell "git push --tags"))
+
+(defn deploy [& {:keys [token version deploy-args]}]
+  (let [deploy-env {"CLOJARS_USERNAME" "madstap"
+                    "CLOJARS_PASSWORD" token}]
+    (assert version "Need to specify a version")
+    (assert (on-main?) "Need to be on main")
+    (assert (clean-workdir?)
+            "Need to have a clean working directory to deploy.")
+
+    (update-version version)
+
+    (println "Deploying to clojars")
+    (tasks/clojure {:extra-env deploy-env} deploy-args)
+
+    (println "Committing and pushing changes")
+    (commit-tag-and-push version)))

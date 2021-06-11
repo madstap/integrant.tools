@@ -6,6 +6,4 @@
    xyz.madland.integrant.tools.alpha/defs
    hooks.madland.integrant.tools.alpha/defs}}
 
- :lint-as {xyz.madland.integrant.tools.alpha/let-derived clojure.core/let}
-
- :linters {:not-empty? {:level :off}}}
+ :lint-as {xyz.madland.integrant.tools.alpha/let-derived clojure.core/let}}
