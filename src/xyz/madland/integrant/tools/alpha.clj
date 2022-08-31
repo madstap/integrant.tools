@@ -98,14 +98,40 @@
              (-> next (conj `get)))
           destructured)))
 
+(defmacro let-derived [bindings & body]
+  `(let ~(destructure-derived bindings)
+     ~@body))
+
 (defmacro with-system
   {:style/indent 1}
   [[binding config ks] & body]
   (let [sys (gensym "system")]
     `(let [~sys (exec ~config ~ks)]
-       (try (let ~(destructure-derived [binding sys])
+       (try (let-derived ~[binding sys]
               ~@body)
             (finally (ig/halt! ~sys))))))
+
+(defn syms-in-binding
+  "Returns the symbols (and keywords that act as symbols) in a binding form."
+  {:no-doc true}
+  [binding]
+  (let [simple-symbol (comp symbol name)]
+    (->> (tree-seq coll? seq binding)
+         (mapcat #(cond (and (symbol? %) (not= '& %))
+                        [(simple-symbol %)]
+
+                        (and (map-entry? %) (= :keys (key %)))
+                        (->> (val %)
+                             (filter keyword?)
+                             (map simple-symbol)))))))
+
+(defmacro defs
+  {:style/indent 1}
+  [binding body]
+  `(let-derived ~[binding body]
+     ~@(for [sym (syms-in-binding binding)]
+         `(def ~sym ~sym))
+     nil))
 
 (defn now-ms []
   (.getTime (Date.)))
