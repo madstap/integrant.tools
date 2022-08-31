@@ -23,9 +23,9 @@
                   (shell "bb build")
 
                   (println "Deploying to clojars")
-                  (shell {:extra-env {"CLOJARS_USERNAME" "madstap"
-                                      "CLOJARS_PASSWORD" deploy-token}}
-                         "clojure -X:deploy")
+                  (clojure {:extra-env {"CLOJARS_USERNAME" "madstap"
+                                        "CLOJARS_PASSWORD" deploy-token}}
+                           "-X:deploy")
 
                   (println "Committing and pushing changes")
                   (shell "git add .")
