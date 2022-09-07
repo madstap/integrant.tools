@@ -45,8 +45,13 @@
             system
             (find-ks system k))))
 
-(defn assoc [system k v]
-  (core/assoc system (or (find-k system k) k) v))
+(defn assoc
+  ([system k v]
+   (core/assoc system (or (find-k system k) k) v))
+  ([system k v & kvs]
+   (reduce (fn [sys [k' v']] (assoc sys k' v'))
+           (assoc system k v)
+           (partition 2 kvs))))
 
 (defn update [system k f & args]
   (assoc system k (apply f (get system k) args)))

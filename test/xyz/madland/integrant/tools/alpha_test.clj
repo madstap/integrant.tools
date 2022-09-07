@@ -15,7 +15,13 @@
   (is (= {[::bar ::foo] 2}
          (ig.tools/assoc {[::bar ::foo] 1} ::foo 2)))
   (is (= {[::bar ::foo] 2}
-         (ig.tools/assoc {[::bar ::foo] 1} [::bar ::foo] 2))))
+         (ig.tools/assoc {[::bar ::foo] 1} [::bar ::foo] 2)))
+  (is (= {[::bar ::foo] 2
+          [::baz ::quux] 3}
+         (ig.tools/assoc {[::bar ::foo] 1
+                          [::baz ::quux] 1}
+                         ::foo 2
+                         ::baz 3))))
 
 (deftest assoc-in-test
   (is (= {[::foo ::bar] {[::foo ::bar] false, ::bar true}}
