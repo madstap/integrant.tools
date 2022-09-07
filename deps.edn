@@ -15,7 +15,7 @@
                              :sync-pom true
                              :group-id "xyz.madland"
                              :artifact-id "integrant.tools"
-                             :version "0.0.9"}}
+                             :version "0.0.10"}}
 
            :deploy {:replace-deps {slipset/deps-deploy {:mvn/version "0.1.5"}}
                     :exec-fn deps-deploy.deps-deploy/deploy
