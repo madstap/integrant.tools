@@ -102,14 +102,22 @@
   `(let ~(destructure-derived bindings)
      ~@body))
 
+(defmethod ig/init-key ::const [_ v] v)
+
+(defn merge-overrides [sys overrides]
+  (reduce-kv (fn [sys k v]
+               (-> sys (dissoc (find-k sys k)) (assoc [::const k] v)))
+             sys
+             overrides))
+
 (defmacro with-system
   {:style/indent 1}
-  [[binding config ks] & body]
+  [[binding config ks & {:keys [overrides]}] & body]
   (let [sys (gensym "system")]
-    `(let [~sys (exec ~config ~ks)]
-       (try (let-derived ~[binding sys]
+    `(let [~sys (exec (merge-overrides ~config ~overrides) ~ks)]
+        (try (let-derived ~[binding sys]
               ~@body)
-            (finally (ig/halt! ~sys))))))
+             (finally (ig/halt! ~sys))))))
 
 (defn syms-in-binding
   "Returns the symbols (and keywords that act as symbols) in a binding form."
