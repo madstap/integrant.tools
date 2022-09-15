@@ -79,8 +79,10 @@
 (defn init* [system ks]
   (if (some? ks) (ig/init system ks) (ig/init system)))
 
-(defn exec [config ks]
-  (-> config ig/prep (init* ks)))
+(defn exec
+  ([config] (exec config nil))
+  ([config ks]
+   (-> config ig/prep (init* ks))))
 
 (defn await-shutdown! [system]
   (.addShutdownHook (Runtime/getRuntime)
