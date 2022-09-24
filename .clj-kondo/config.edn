@@ -1,6 +1,7 @@
 {:hooks
  {:analyze-call
-  {xyz.madland.integrant.tools.alpha/with-system hooks.with-system/with-system}}
+  {xyz.madland.integrant.tools.alpha/with-system hooks.ig-tools/with-system
+   xyz.madland.integrant.tools.alpha/defs hooks.ig-tools/defs}}
 
  :linters
  {:not-empty? {:level :off}}}
